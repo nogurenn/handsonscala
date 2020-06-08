@@ -1,0 +1,52 @@
+[
+    {
+        "label": "post[1].srcPath",
+        "millis": 42,
+        "cached": false
+    },
+    {
+        "label": "post[1].render",
+        "millis": 63,
+        "cached": false
+    },
+    {
+        "label": "post[2].srcPath",
+        "millis": 2,
+        "cached": false
+    },
+    {
+        "label": "post[2].render",
+        "millis": 5,
+        "cached": false
+    },
+    {
+        "label": "post[3].srcPath",
+        "millis": 2,
+        "cached": false
+    },
+    {
+        "label": "post[3].render",
+        "millis": 4,
+        "cached": false
+    },
+    {
+        "label": "links",
+        "millis": 5,
+        "cached": false
+    },
+    {
+        "label": "index",
+        "millis": 5,
+        "cached": false
+    },
+    {
+        "label": "bootstrap",
+        "millis": 998,
+        "cached": false
+    },
+    {
+        "label": "dist",
+        "millis": 16,
+        "cached": false
+    }
+]
