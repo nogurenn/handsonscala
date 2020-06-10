@@ -1,5 +1,7 @@
 package sync
 
+import Rpc.subPathRw
+
 object Sync {
   def main(args: Array[String]): Unit = {
     val src = os.Path(args(0), os.pwd)
@@ -12,20 +14,29 @@ object Sync {
       () => Shared.receive[T](agent.stdout.data)
     }
     def subPaths = os.walk(src).map(_.subRelativeTo(src))
-    def pipelineCalls[T: upickle.default.Reader](rpcFor: os.SubPath => Option[Rpc]) = {
-      val buffer = collection.mutable.Buffer.empty[(os.RelPath, () => T)]
-      for (p <- subPaths; rpc <- rpcFor(p)) buffer.append((p, callAgent[T](rpc)))
+    val subPathSet = subPaths.toSet
+    def pipelineCalls[T: upickle.default.Reader](paths: Seq[os.SubPath])
+                                                (rpcFor: os.SubPath => Option[Rpc]) = {
+      val buffer = collection.mutable.Buffer.empty[(os.SubPath, () => T)]
+      for (p <- paths; rpc <- rpcFor(p)) buffer.append((p, callAgent[T](rpc)))
       buffer.map { case (k, v) => (k, v()) }.toMap
     }
 
-    val existsMap = pipelineCalls[Boolean](p => Some(Rpc.Exists(p)))
-    val isDirMap = pipelineCalls[Boolean](p => Some(Rpc.IsDir(p)))
-    val readMap = pipelineCalls[Array[Byte]]{p =>
+    val existsMap = pipelineCalls[Boolean](subPaths)(p => Some(Rpc.Exists(p)))
+    val isDirMap = pipelineCalls[Boolean](subPaths)(p => Some(Rpc.IsDir(p)))
+    
+    val readMap = pipelineCalls[Array[Byte]](subPaths){p =>
       if (existsMap(p) && !isDirMap(p)) Some(Rpc.ReadBytes(p))
       else None
     }
-    pipelineCalls[Unit]{p =>
+
+    val remoteScanned = callAgent[Seq[os.SubPath]](Rpc.RemoteScan()).apply()
+
+    val allPaths = (subPaths ++ remoteScanned).distinct
+
+    pipelineCalls[Unit](allPaths){p =>
       if (os.isDir(src / p)) None
+      else if (!subPathSet.contains(p)) Some(Rpc.Delete(p))
       else {
         val localBytes = os.read.bytes(src / p)
         if (readMap.get(p).exists(java.util.Arrays.equals(_, localBytes))) None

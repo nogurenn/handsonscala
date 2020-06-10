@@ -15,8 +15,14 @@ object Rpc {
   case class ReadBytes(path: os.SubPath) extends Rpc
   implicit val readyBytesRw: ReadWriter[ReadBytes] = macroRW
 
+  case class RemoteScan() extends Rpc
+  implicit val remoteScanRw: ReadWriter[RemoteScan] = macroRW
+
   case class WriteOver(src: Array[Byte], path: os.SubPath) extends Rpc
   implicit val wroteOverRw: ReadWriter[WriteOver] = macroRW
+
+  case class Delete(path: os.SubPath) extends Rpc
+  implicit val deleteRw: ReadWriter[Delete] = macroRW
 
   implicit val RpcRw: ReadWriter[Rpc] = macroRW
 }
